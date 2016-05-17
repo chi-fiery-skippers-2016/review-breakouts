@@ -1,0 +1,8 @@
+<%= erb :"_errors", locals: {errors: @cat.errors}%>
+
+<form method="POST" action="/cats/<%= @cat.id %>">
+  <input type="hidden" name="_method" value="PUT" />
+  <input type="text" name="cat[name]" value="<%= @cat.name %>" />
+  <input type="text" name="cat[breed]" value="<%= @cat.breed %>" />
+  <input type="submit">
+</form>
