@@ -8,8 +8,15 @@ get '/cats' do
 end
 
 get '/cats/new' do
+  redirect '/login' if session[:user_id] == nil
+
   @cat = Cat.new
-  erb :"cats/new"
+
+  if request.xhr?
+    erb :"cats/new", layout: false
+  else
+    erb :"cats/new"
+  end
 end
 
 get '/cats/:id' do
@@ -20,20 +27,33 @@ end
 post '/cats' do
   @cat = Cat.new(params[:cat])
 
-  if @cat.save
-    redirect '/cats'
+  if request.xhr?
+    if @cat.save
+      @cat.to_json
+    else
+      status 422
+      @cat.errors.full_messages.to_json
+    end
   else
-    erb :"cats/new"
+    if @cat.save
+      redirect '/cats'
+    else
+      erb :"cats/new"
+    end
   end
 end
 
 get '/cats/:id/edit' do
   find_cat
+  checked_logged_in
+  redirect '/cats' if @cat.user_id != current_user.id
   erb :"cats/edit"
 end
 
 put '/cats/:id' do
   find_cat
+  checked_logged_in
+  redirect '/cats' if @cat.user_id != current_user.id
   if @cat.update_attributes(params[:cat])
     redirect '/cats'
   else
